@@ -1,0 +1,38 @@
+mvn archetype:generate -DgroupId=com.example -DartifactId=mywebapp -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven-3.9.12'
+        jdk 'jdk-25.0.2'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/parth0285/expi4'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                deploy adapters: [
+                    tomcat9(
+                        credentialsId: 'tomcat-creds',
+                        path: '',
+                        url: 'http://localhost:8081'
+                    )
+                ],
+                contextPath: 'my-webapp',
+                war: 'target/webapp.war'
+            }
+        }
+    }
+}
